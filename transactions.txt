@@ -1,5 +1,0 @@
-chace 1.41 all
-john 2.00 chace
-chace 4.89 james
-chace 3.95 john
-chace 2.69 john james rachel chace
