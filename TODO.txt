@@ -6,3 +6,4 @@
 - Configurability: make .iou point to the actual debtfile
 - syntax improvements
   - allow for things like "all but x"
+- unit testing
