@@ -1,0 +1,8 @@
+- Add way to rename a person
+- Refactor: code duplication everywhere
+- Improve iou process:
+  - allow comments in transactions file
+  - allow other stuff besides just adding
+- Configurability: make .iou point to the actual debtfile
+- syntax improvements
+  - allow for things like "all but x"

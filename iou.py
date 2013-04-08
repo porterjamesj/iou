@@ -1,0 +1,185 @@
+#!/user/bin/env python
+
+from debtgraph import DebtGraph
+import argparse
+from os.path import expanduser as path
+
+# Functions to be called by the subparsers
+
+def init(args):
+    dg = DebtGraph(args.people)
+    dg.serialize(path(args.file))
+    
+def add(args):
+    dg = DebtGraph(path(args.file))
+    if len(args.debtors) > 1:
+        dg.split(args.creditor,args.debtors,float(args.amount))
+    elif len(args.debtors) == 1:
+        if args.debtors is ["all"]:
+            dg.split(args.creditors, dg.graph.keys(),float(args.amount))
+        else:
+            dg.add(args.creditor,args.debtors[0],float(args.amount))
+    dg.serialize(path(args.file))
+
+def remove(args):
+    dg = DebtGraph(path(args.file))
+    if args.debtor is "all":
+        for person in dg.graph[args.creditor]:
+            dg.remove(args.creditor,person, args.amount)
+    else:
+        dg.remove(args.creditor,args.debtor,float(args.amount))
+    dg.serialize(path(args.file))
+
+def forgive(args):
+    dg = DebtGraph(path(args.file))
+    if args.debtor is "all":
+        for person in dg.graph[args.creditor]:
+            dg.forgive(args.creditor, person)
+    else:
+        dg.forgive(args.creditor, args.debtor)
+    dg.serialize(path(args.file))
+
+def cleanup(args):
+    dg = DebtGraph(path(args.file))
+    dg.cleanup()
+    dg.serialize(path(args.file))
+
+def view(args):
+    dg = DebtGraph(path(args.file))
+    if args.creditors == None and args.debtors == None:
+        args.creditors = dg.graph.keys()
+        args.debtors = dg.graph.keys()
+    if args.creditors == ["all"]:
+        args.creditors = dg.graph.keys()
+    if args.debtors == ["all"]:
+        args.debtors = dg.graph.keys()
+    s = ""
+    for creditor in args.creditors:
+        if dg.graph[creditor] == {}:
+            s += "No debts owed to " + creditor + "\n\n"
+        else:
+            s += "{0} <-".format(creditor)
+            for i,debtor in enumerate(dg.graph[creditor]):
+                if i > 0:
+                    s += " " * (len(creditor) + 3)
+                s += "+-- {0}: {1}\n".format(debtor,dg.graph[creditor][debtor])
+                if i+1 < len(dg.graph[creditor]):
+                    s += " " * (len(creditor)+3) + "|\n"
+            print s
+            s = ""
+
+def newperson(args):
+    dg = DebtGraph(path(args.file))
+    dg.add_person(args.person)
+    dg.serialize(path(args.file))
+
+def rmperson(args):
+    dg = DebtGraph(path(args.file))
+    dg.remove_person(args.person)
+    dg.serialize(path(args.file))
+
+def process(args):
+    dg = DebtGraph(path(args.file))
+    with open(path(args.transfile)) as tf:
+        for line in tf:
+            linelist = line.split()
+            dg.split(linelist[0],linelist[2:],linelist[1])
+
+# top level parser
+parser = argparse.ArgumentParser(prog = "iou",
+                                 description="""Command line interface
+                                              to iou.  Manages debts.""",
+                                 version = "0.1")
+parser.add_argument("--file",default = "~/.iou",
+                    help="""The file to operate on. Should be
+                                 JSON formatted. The default is
+                                 ~/.iou.""")
+subparsers = parser.add_subparsers(help="Possible actions to operate on the specified file.")
+
+# parser for iou add
+add_parser = subparsers.add_parser("add", help="Add debt from one person to (an)other(s).")
+add_parser.add_argument("amount",
+                        help="The amount of the debt.")
+add_parser.add_argument("creditor",
+                        help="The person to whom the debt is owed.")
+add_parser.add_argument("debtors",
+                        help="The person or people who owe the debt.",
+                        nargs="+")
+add_parser.set_defaults(func=add)
+
+# parser for iou remove
+remove_parser = subparsers.add_parser("remove", help="Remove debt from one person to another.")
+remove_parser.add_argument("amount",
+                           help="The amount of the debt.")
+remove_parser.add_argument("creditor",
+                           help="The person to whom the debt is owed.")
+remove_parser.add_argument("debtor",
+                           help="The person who owes the debt.")
+remove_parser.set_defaults(func=remove)
+
+# parser for iou cleanup
+cleanup_parser = subparsers.add_parser("cleanup",
+                                       help="""Cleanup the debt file. See full documentation
+                                            for details.""")
+cleanup_parser.set_defaults(func=cleanup)
+
+# parser for iou forgive
+forgive_parser = subparsers.add_parser("forgive",
+                                       help="Forgive all of one person's debt to another")
+forgive_parser.add_argument("creditor",
+                           help="The person to whom the debt is owed.")
+forgive_parser.add_argument("debtor",
+                           help="The person who owes the debt.")
+forgive_parser.set_defaults(func=forgive)
+
+# parser for iou view
+view_parser = subparsers.add_parser("view",
+                                    help="Display all or part of the debt graph.")
+view_parser.add_argument("--creditors","-c",
+                         help="The person to whom the debt is owed.",
+                         nargs="*")
+view_parser.add_argument("--debtors","-d",
+                        help="The person or people who owe the debt.",
+                        nargs="*")
+view_parser.set_defaults(func=view)
+
+# parser for iou init
+init_parser = subparsers.add_parser("init",
+                                   help="""Initialize the specified
+                                   file with the given people.""")
+init_parser.add_argument("people",
+                        help="The people to be included in this debtfile.",
+                        nargs="+")
+init_parser.set_defaults(func=init)
+
+# parser for iou newperson
+newperson_parser = subparsers.add_parser("newperson",
+                                   help="""Add a person to the debtfile""")
+newperson_parser.add_argument("person",
+                        help="The person to be added.")
+newperson_parser.set_defaults(func=newperson)
+
+# parser for iou rmperson
+rmperson_parser = subparsers.add_parser("rmperson",
+                                   help="""Remove a person from the debtfile.""")
+rmperson_parser.add_argument("person",
+                        help="The person to be removed.")
+rmperson_parser.set_defaults(func=rmperson)
+
+# parser for iou process
+process_parser = subparsers.add_parser("process",
+                                       help= """"Process a transactions
+                                       file. See full documentation
+                                        for details.""")
+process_parser.add_argument("transfile",
+                            help="The transactions file to be processed")
+process_parser.set_defaults(func=process)
+
+def command_line_runner():
+    # go ahead and parse the arguments
+    args = parser.parse_args()
+    # call the appropriate function
+    args.func(args)
+
+if __name__ == '__main__':
+    command_line_runner()
