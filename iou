@@ -4,6 +4,26 @@ from debtgraph import DebtGraph
 import argparse
 from os.path import expanduser as path
 
+def get_names(arg_list, dg):
+    """
+    Parses person specifications from the command line into lists of names  
+
+    This enables a couple nice syntaxes, one is
+
+    all => all the people in the graph.
+
+    another is:
+
+    all but james => everyone in the graph except james.
+    """
+    if arg_list[0] == "all":
+        if len(arg_list) > 1:
+            return [person for person in dg.graph.keys() if person not in arg_list[2:]]
+        else:
+            return dg.graph.keys()
+    elif arg_list[0] != "all":
+        return arg_list
+
 # Functions to be called by the subparsers
 
 def init(args):
@@ -12,31 +32,18 @@ def init(args):
     
 def add(args):
     dg = DebtGraph(path(args.file))
-    if len(args.debtors) > 1:
-        dg.split(args.creditor,args.debtors,float(args.amount))
-    elif len(args.debtors) == 1:
-        if args.debtors == ["all"]:
-            dg.split(args.creditor, dg.graph.keys(),float(args.amount))
-        else:
-            dg.add(args.creditor,args.debtors[0],float(args.amount))
+    debtors = get_names(args.debtors,dg)
+    dg.add(args.creditor,debtors,float(args.amount))
     dg.serialize(path(args.file))
 
 def remove(args):
     dg = DebtGraph(path(args.file))
-    if args.debtor == "all":
-        for person in dg.graph[args.creditor]:
-            dg.remove(args.creditor,person, args.amount)
-    else:
-        dg.remove(args.creditor,args.debtor,float(args.amount))
+    dg.remove(args.creditor,args.debtor,float(args.amount))
     dg.serialize(path(args.file))
 
 def forgive(args):
     dg = DebtGraph(path(args.file))
-    if args.debtor == "all":
-        for person in dg.graph[args.creditor]:
-            dg.forgive(args.creditor, person)
-    else:
-        dg.forgive(args.creditor, args.debtor)
+    dg.forgive(args.creditor, args.debtor)
     dg.serialize(path(args.file))
 
 def cleanup(args):
@@ -68,14 +75,16 @@ def view(args):
         print s
         s = ""
 
-def newperson(args):
+def newpeople(args):
     dg = DebtGraph(path(args.file))
-    dg.add_person(args.person)
+    for person in args.people:
+        dg.add_person(person)
     dg.serialize(path(args.file))
 
-def rmperson(args):
+def rmpeople(args):
     dg = DebtGraph(path(args.file))
-    dg.remove_person(args.person)
+    for person in get_names(args.people,dg):
+        dg.remove_person(person)
     dg.serialize(path(args.file))
 
 def process(args):
@@ -83,11 +92,8 @@ def process(args):
     with open(path(args.transfile)) as tf:
         for line in tf:
             linelist = line.split()
-            if linelist[2:] == ["all"]:
-                debtors = dg.graph.keys()
-            else:
-                debtors = linelist[2:]
-            dg.split(linelist[0],debtors,float(linelist[1]))
+            debtors = get_names(linelist[2:],dg)
+            dg.add(linelist[0],debtors,float(linelist[1]))
     dg.serialize(path(args.file))
 
 # top level parser
@@ -158,18 +164,20 @@ init_parser.add_argument("people",
 init_parser.set_defaults(func=init)
 
 # parser for iou newperson
-newperson_parser = subparsers.add_parser("newperson",
-                                   help="""Add a person to the debtfile""")
-newperson_parser.add_argument("person",
-                        help="The person to be added.")
-newperson_parser.set_defaults(func=newperson)
+newperson_parser = subparsers.add_parser("newpeople",
+                                   help="""Add people to the debtfile""")
+newperson_parser.add_argument("people",
+                        help="The people to be added.",
+                        nargs="+")
+newperson_parser.set_defaults(func=newpeople)
 
-# parser for iou rmperson
-rmperson_parser = subparsers.add_parser("rmperson",
-                                   help="""Remove a person from the debtfile.""")
-rmperson_parser.add_argument("person",
-                        help="The person to be removed.")
-rmperson_parser.set_defaults(func=rmperson)
+# parser for iou rmpeople
+rmpeople_parser = subparsers.add_parser("rmpeople",
+                                    help="""Remove people from the debtfile.""")
+rmpeople_parser.add_argument("people",
+                                help="The people to be removed.",
+                                nargs="+")
+rmpeople_parser.set_defaults(func=rmpeople)
 
 # parser for iou process
 process_parser = subparsers.add_parser("process",

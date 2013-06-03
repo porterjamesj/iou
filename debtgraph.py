@@ -46,16 +46,6 @@ class DebtGraph:
         self.graph = json.load(fp)
         fp.close()
 
-    def add(self,creditor,debtor,amount):
-        """
-        Add a debt from `debtor` to `creditor` in the amount
-        specified.
-        """
-        if debtor in self.graph[creditor]:
-            self.graph[creditor][debtor] += float(amount)
-        else:
-            self.graph[creditor][debtor] = float(amount)
-
     def remove(self,creditor,debtor,amount):
         """
         Wipe out amount of debtor's debt to creditor. If the debt
@@ -77,22 +67,33 @@ class DebtGraph:
             # should an error be raised here?
             pass
 
-    def split(self,creditor,debtors,amount):
+    def add(self,creditor,debtors,amount):
         """
         Split an amount of debt to the specified creditor between all
         parties in the debtors list.
         """
-        each_amount = amount / len(debtors)
-        for debtor in debtors:
-            if debtor != creditor:
-                """
-                The above line is confusing, it is there to ensure
-                that splits in which one person buys something for a
-                group that includes them (and therefore is both a
-                debtor and the creditor) work correctly.
-                """
-                self.add(creditor,debtor,each_amount)
-
+        each_amount = float(amount) / len(debtors)
+        if type(debtors) is list:
+            for debtor in debtors:
+                if debtor != creditor:
+                    """
+                    The above line is confusing, it is there to ensure
+                    that splits in which one person buys something for a
+                    group that includes them (and therefore is both a
+                    debtor and the creditor) work correctly.
+                    """
+                    if debtor in self.graph[creditor]:
+                        self.graph[creditor][debtor] += each_amount
+                    else:
+                        self.graph[creditor][debtor] = each_amount
+        elif type(debtors) is str or type(debtors) is unicode:
+            if debtors in self.graph[creditor]:
+                self.graph[creditor][debtors] += float(amount)
+            else:
+                self.graph[creditor][debtors] = float(amount)
+        else:
+            raise TypeError("debtors must be either a list or string.")
+                    
     def cancel(self):
         """
         Cancels useless debt in symmetric relationships. For example,
@@ -167,5 +168,17 @@ class DebtGraph:
             for node in self.graph:
                 if person in self.graph[node]:
                     del self.graph[node][person]
+        else:
+            raise KeyError("No such person in graph.")
+
+    def rename_person(self,oldname,newname):
+        """Change a person's name."""
+        if newname in self.graph:
+            self.graph[newname] = self.graph[oldname]
+            for node in self.graph:
+                if oldname in self.graph[node]:
+                    self.graph[node][newname] = self.graph[node][oldname]
+                    del self.graph[node][oldname]
+            del self.graph[oldname]
         else:
             raise KeyError("No such person in graph.")
