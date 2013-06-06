@@ -8,22 +8,19 @@ class DebtGraph:
     it. graph is a dictonary of dictionaries; It can be thought of as
     graph[creditor][debtor].
     """
-    def __init__(self,people):
+    def __init__(self,initstring):
         """
-        Initialization method for a DebtGraph. If people is a list, it
+        Initialization method for a DebtGraph. If initstring is a list, it
         is interpreted as a list of names and an empty dept graph is
         constructed from them. If it is a string, it is interpreted as
         a filename, and the file (json format) is interpreted as a
         dict of dicts and used to initialize the object.
         """
-        if type(people) is list or type(people) is tuple:
-            self.graph = {}
-            for person1 in people:
-                self.graph[person1] = {}
-        elif type(people) is str:
-            fp = open(people,"r")
-            self.graph = json.load(fp)
-            fp.close()
+        if isinstance(initstring,(list,tuple)):
+            self.graph = {person:{} for person in initstring}
+        elif isinstance(initstring,str):
+            with open(initstring,"r") as fp:
+                self.graph = json.load(fp)
         else:
             raise TypeError("Initialization must be from string or list.")
 
@@ -33,39 +30,35 @@ class DebtGraph:
         
     def serialize(self,filename):
         """Serializes the graph to the named file as json."""
-        fp = open(filename,"w")
-        json.dump(self.graph,fp)
-        fp.close()
+        with open(filename,"w") as fp:
+            json.dump(self.graph,fp)
 
     def deserialize(self,filename):
         """
         Replaces the current graph with one read from the filename
         (json format) given.
         """
-        fp = open(filename,"r")
-        self.graph = json.load(fp)
-        fp.close()
+        with open(filename,"r") as fp:
+            self.graph = json.load(fp)
 
     def remove(self,creditor,debtor,amount):
         """
         Wipe out amount of debtor's debt to creditor. If the debt
         would go negative, keep it at zero.
         """
-        if debtor in self.graph[creditor]:
+        try:
             self.graph[creditor][debtor] -= amount
             if self.graph[creditor][debtor] < 0:
                 del self.graph[creditor][debtor]
-        else:
-            # should this fail silently or raise an error?
+        except:
             raise KeyError("The specified debt does not exist.")
 
     def forgive(self,creditor,debtor):
         """Forgive the entire debt specified."""
-        if debtor in self.graph[creditor]:
+        try:
             del self.graph[creditor][debtor]
-        else:
-            # should an error be raised here?
-            pass
+        except:
+            raise KeyError("The specified debt does not exist.")
 
     def add(self,creditor,debtors,amount):
         """
@@ -163,22 +156,22 @@ class DebtGraph:
 
     def remove_person(self,person):
         """Remove a person and all their associated debts."""
-        if person in self.graph:
+        try:
             del self.graph[person]
             for node in self.graph:
                 if person in self.graph[node]:
                     del self.graph[node][person]
-        else:
+        except:
             raise KeyError("No such person in graph.")
 
     def rename_person(self,oldname,newname):
         """Change a person's name."""
-        if newname in self.graph:
+        try:
             self.graph[newname] = self.graph[oldname]
             for node in self.graph:
                 if oldname in self.graph[node]:
                     self.graph[node][newname] = self.graph[node][oldname]
                     del self.graph[node][oldname]
             del self.graph[oldname]
-        else:
+        except:
             raise KeyError("No such person in graph.")

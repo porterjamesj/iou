@@ -4,6 +4,14 @@ from debtgraph import DebtGraph
 import argparse
 from os.path import expanduser as path
 
+def serializer(func):
+    """Decorator for deserializing at the beginning and serializing at the end."""
+    def newfunc(args):
+        dg = DebtGraph(path(args.file))
+        func(args,dg)
+        dg.serialize(path(args.file))
+    return newfunc
+
 def get_names(arg_list, dg):
     """
     Parses person specifications from the command line into lists of names  
@@ -29,27 +37,23 @@ def get_names(arg_list, dg):
 def init(args):
     dg = DebtGraph(args.people)
     dg.serialize(path(args.file))
-    
-def add(args):
-    dg = DebtGraph(path(args.file))
+
+@serializer
+def add(args,dg):
     debtors = get_names(args.debtors,dg)
     dg.add(args.creditor,debtors,float(args.amount))
-    dg.serialize(path(args.file))
 
-def remove(args):
-    dg = DebtGraph(path(args.file))
+@serializer
+def remove(args,dg):
     dg.remove(args.creditor,args.debtor,float(args.amount))
-    dg.serialize(path(args.file))
 
-def forgive(args):
-    dg = DebtGraph(path(args.file))
+@serializer
+def forgive(args,dg):
     dg.forgive(args.creditor, args.debtor)
-    dg.serialize(path(args.file))
 
-def cleanup(args):
-    dg = DebtGraph(path(args.file))
+@serializer
+def cleanup(args,dg):
     dg.cleanup()
-    dg.serialize(path(args.file))
 
 def view(args):
     dg = DebtGraph(path(args.file))
@@ -75,26 +79,23 @@ def view(args):
         print s
         s = ""
 
-def newpeople(args):
-    dg = DebtGraph(path(args.file))
+@serializer
+def newpeople(args,dg):
     for person in args.people:
         dg.add_person(person)
-    dg.serialize(path(args.file))
 
-def rmpeople(args):
-    dg = DebtGraph(path(args.file))
+@serializer
+def rmpeople(args,dg):
     for person in get_names(args.people,dg):
         dg.remove_person(person)
-    dg.serialize(path(args.file))
 
-def process(args):
-    dg = DebtGraph(path(args.file))
+@serializer
+def process(args,dg):
     with open(path(args.transfile)) as tf:
         for line in tf:
             linelist = line.split()
             debtors = get_names(linelist[2:],dg)
             dg.add(linelist[0],debtors,float(linelist[1]))
-    dg.serialize(path(args.file))
 
 # top level parser
 parser = argparse.ArgumentParser(prog = "iou",
