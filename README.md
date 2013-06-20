@@ -8,7 +8,7 @@ going insane.
 ## Installation
 
 iou is a python script with no external dependencies. You do need to
-have the `json` module, which means python 2.6 of greater.
+have the json module, which means python version 2.6 or greater.
 	
     $ git clone https://github.com/porterjamesj/iou.git
 	$ python setup.py install
@@ -31,15 +31,16 @@ serializes to, and populate it with the names alice, bob, and charlie.
 	No debts owed to bob
 	
 	No debts owed to alice
+
 	
 Nobody owes anybody else money to start out with. Imagine that Alice
 and Charlie go out to eat, Charlie forgets to bring any money, and
-Alice pays for his $10 dinner.
+Alice pays for his $10 dinner. We can add this debt with the `add` command.
 
 	$ iou add alice 10 charlie
 
 The syntax here is `iou add [creditor] [amount] [debtor]`. Now if we
-view the debts:
+view the debts with the `view` command:
 
 	$ iou view
 	No debts owed to charlie
@@ -48,7 +49,8 @@ view the debts:
 	
 	alice <-+-- charlie: 10.0
 	
-It prints a nice graphical summary of all the debts. Let's let a few more debts accumulate:
+It prints a nice graphical summary of all the debts. Let's let a few
+more debts accumulate:
 
 	$ iou add alice 5 bob
 	$ iou add charlie 20 bob
@@ -67,8 +69,9 @@ Nice! But this graph has a lot of needless money changing hands. For
 example, why should Charlie have to find Bob and give him $10 only to
 have Bob give him $20 right back? It would be simpler for Bob to just
 owe Charlie $10. Moreover, since Charlie owes $10 to Alice anyway, it
-would be simpler for Bob to owe that $10 to Charlie
-directly. Fortunately, iou handles all this automatically.
+would be simpler for Bob to owe that $10 to Charlie directly.
+Fortunately, iou handles all this automatically with the `cleanup`
+command.
 
 	$ iou cleanup
 	$ iou view
@@ -83,7 +86,8 @@ money gained or lost, but the structure is much simpler so there's
 less hassle for all. Having things automatically simplified in this
 manner is the killer feature of doing this with software.
 
-Now let's say Bob pays back Alice $10 of what he owes her.
+Now let's say Bob pays back Alice $10 of what he owes her. We handle this
+with the `remove` command.
 
 	$ iou remove alice 10 bob
 	$ iou view
@@ -101,7 +105,7 @@ To clear the entirety of the debt from Bob to Alice, regardless of it's amount.
 
 # Sugar
 
-Imagine that our three friends go to a movie and Alice buys some
+Imagine that the three go to a movie and Alice buys some $7
 popcorn for Bob and Charlie to share. We can add this as:
 
 	$ iou add alice 7 bob charlie
@@ -136,7 +140,7 @@ shortcut you can use:
 
 	$ iou add bob 60 all
 	
-The `all` is expanded into the names of everyone in the graph.
+`all` is expanded into the names of everyone in the graph.
 
 You can also specify that a debt is owed from all but certain
 individuals. For example, if Bob buys some eggs for the group, but
@@ -147,14 +151,14 @@ Alice is vegan so she won't be using any, you could do this:
 `all but alice` is expanded into the names of everyone in the graph
 except Alice. An arbitrary number of names can come after `but`. In
 this case, since we only have three people, `all but alice` is just
-`bob charlie` so this is actually more annoying to type. When dealing
-wiht bigger graphs, however, this is very helpful.
+`bob charlie` so this is actually longer to type, but when dealing
+with bigger groups the `but` sugar can be very helpful.
 
 ## Batch processing
 
 A typical way of using iou is to have everyone save their recipts
-from communal purchases and then batch process them all every few
-weeks/months and cleanup the resulting graph to see who owes who how
+from communal purchases, batch process them all every few
+weeks/months, and cleanup the resulting graph to see who owes who how
 much. Typing in all those `add` commands one at a time can be a pain
 though, so iou supports batch processing of debt additions. You can
 type up all the debts in a file like so:
@@ -180,6 +184,8 @@ called `debts.txt.`. We can process it with:
 
 	alice <-+-- bob: 20.0
 	
+And then clean it up:	
+
 	$ iou cleanup
 	$ iou view
 	charlie <-+-- bob: 36.9333333333
@@ -194,7 +200,7 @@ Cool.
 
 ## Adding and removing people
 
-Imagine that our imaginary friends get two new roommates, David and Elise.
+Imagine that the three get two new roommates, David and Elise.
 We can add them to the graph like so:
 
 	$ iou newpeople david elise
