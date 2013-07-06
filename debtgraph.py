@@ -96,8 +96,8 @@ class DebtGraph:
         if A owes B $10 and B owes A $3, running cancel will cause A
         to simply owe B $7.
         """
-        for person1 in self.graph:
-            for person2 in self.graph[person1]:
+        for person1 in self.graph.keys():
+            for person2 in self.graph[person1].keys():
                 if (person1 in self.graph[person2] and
                     self.graph[person1][person2] > 0 and
                     self.graph[person2][person1] > 0):
@@ -105,10 +105,10 @@ class DebtGraph:
                                self.graph[person2][person1])
                     if newdebt > 0:
                         self.graph[person1][person2] = newdebt
-                        self.graph[person2][person1] = 0.0
+                        del self.graph[person2][person1]
                     else:
                         self.graph[person2][person1] = -newdebt
-                        self.graph[person1][person2] = 0.0
+                        del self.graph[person1][person2]
 
     def collapse(self):
         """
