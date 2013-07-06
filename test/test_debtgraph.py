@@ -97,3 +97,63 @@ class TestManipulation():
         assert self.dg.graph == {"alice": {"bob": 10, "charlie":5},
                                  "bob": {},
                                  "charlie": {}}
+
+
+class TestCollapse():
+    """This has its own class becuase the setup is different."""
+
+    @classmethod
+    def setUp(self):
+        self.dg = DebtGraph({"alice": {"charlie":5},
+             "bob": {"alice":10},
+             "charlie": {"bob":10}})
+
+    def test_collapse(self):
+        """Collapsing the graph should work as intended."""
+        self.dg.collapse()
+        assert self.dg.graph == {'charlie': {'alice': 5.0},
+                                 'bob': {},
+                                 'alice': {}}
+
+class TestEdit():
+    """Testing functions that manipulate the list of people in the graph."""
+
+    @classmethod
+    def setUp(self):
+        """Set up a test DebtGraph."""
+        self.dg = DebtGraph(
+            {"alice": {"bob": 20, "charlie":5},
+             "bob": {"alice":10},
+             "charlie": {}})
+
+    def test_add_person(self):
+        """Should add a person to the graph correctly."""
+        self.dg.add_person("danielle")
+        assert self.dg.graph == {"alice": {"bob": 20, "charlie":5},
+                                 "bob": {"alice":10},
+                                 "charlie": {},
+                                 "danielle":{}}
+
+    def test_remove_person_normal(self):
+        """Should remove a person and all their debts correctly."""
+        self.dg.remove_person("alice")
+        assert self.dg.graph == {"bob": {},
+                                 "charlie": {}}
+
+    @raises(KeyError)
+    def test_remove_person_error(self):
+        """Remove person should raise an error if the person does not exist."""
+        self.dg.remove_person("zack")
+
+
+    def test_rename_person_normal(self):
+        """Should rename a person correctly when they exist."""
+        self.dg.rename_person("alice","alex")
+        assert self.dg.graph == {"alex": {"bob": 20, "charlie":5},
+                                 "bob": {"alex":10},
+                                 "charlie": {}}
+
+    @raises(KeyError)
+    def test_rename_person_error(self):
+        """Rename person should throw an error if the person does not exist."""
+        self.dg.rename_person("zack","anthony")
