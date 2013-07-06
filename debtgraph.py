@@ -8,26 +8,29 @@ class DebtGraph:
     it. graph is a dictonary of dictionaries; It can be thought of as
     graph[creditor][debtor].
     """
-    def __init__(self,initstring):
+    def __init__(self,init):
         """
-        Initialization method for a DebtGraph. If initstring is a list, it
+        Initialization method for a DebtGraph. If init is a list, it
         is interpreted as a list of names and an empty dept graph is
         constructed from them. If it is a string, it is interpreted as
         a filename, and the file (json format) is interpreted as a
-        dict of dicts and used to initialize the object.
+        dict of dicts and used to initialize the object. If it is a dict,
+        then this is assumed to be the graph for the new instances.
         """
-        if isinstance(initstring,(list,tuple)):
-            self.graph = {person:{} for person in initstring}
-        elif isinstance(initstring,str):
-            with open(initstring,"r") as fp:
+        if isinstance(init,(list,tuple)):
+            self.graph = {person:{} for person in init}
+        elif isinstance(init,str):
+            with open(init,"r") as fp:
                 self.graph = json.load(fp)
+        elif isinstance(init,dict):
+            self.graph = init.copy()
         else:
-            raise TypeError("Initialization must be from string or list.")
+            raise TypeError("Initialization must be from string, list, or dict.")
 
     def __repr__(self):
         """Representation of a DebtGraph."""
         return str(self.graph)
-        
+
     def serialize(self,filename):
         """Serializes the graph to the named file as json."""
         with open(filename,"w") as fp:
@@ -86,7 +89,7 @@ class DebtGraph:
                 self.graph[creditor][debtors] = float(amount)
         else:
             raise TypeError("debtors must be either a list or string.")
-                    
+
     def cancel(self):
         """
         Cancels useless debt in symmetric relationships. For example,
@@ -149,7 +152,7 @@ class DebtGraph:
         """Convenience function to run cancel and collapse at once."""
         self.cancel()
         self.collapse()
-        
+
     def add_person(self,person):
         """Add a new person (potential node)."""
         self.graph[person] = {}
