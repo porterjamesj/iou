@@ -13,7 +13,7 @@ setup(
     license = "MIT",
     keywords = "iou debts personal",
     url = "https://github.com/porterjamesj/iou",
-    longdescription=read("README.rst"),
+    longdescription=read("README.md"),
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Environment :: Console",
