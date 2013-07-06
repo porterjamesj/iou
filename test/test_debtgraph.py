@@ -1,5 +1,6 @@
 from debtgraph import DebtGraph
 from nose.tools import raises
+from nose.tools import assert_raises
 
 class TestInit():
     """Initialization should occur properly."""
@@ -83,10 +84,17 @@ class TestManipulation():
                                  "charlie": {"alice":5,"bob":5}}
 
     @raises(TypeError)
-    def test_addition_error(self):
+    def test_addition_error1(self):
         """Addition should throw an error if not called using a list or a
         string."""
         self.dg.add("alice",3,3)
+
+    def test_addition_error2(self):
+        """Addition should throw an error if any of the people
+        specified don't exist."""
+        assert_raises(KeyError,lambda: self.dg.add("alice","not here",3))
+        assert_raises(KeyError,lambda: self.dg.add("not here","alice",3))
+        assert_raises(KeyError,lambda: self.dg.add("alice",["bob","NH"],3))
 
     #cancellation
 

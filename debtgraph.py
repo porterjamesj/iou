@@ -69,7 +69,11 @@ class DebtGraph:
         parties in the debtors list.
         """
         each_amount = float(amount) / len(debtors)
-        if type(debtors) is list:
+        if isinstance(debtors,list):
+            # check that all the debtors actually exist
+            for debtor in debtors:
+                if debtor not in self.graph.keys():
+                    raise KeyError("debtor not found.")
             for debtor in debtors:
                 if debtor != creditor:
                     """
@@ -82,7 +86,10 @@ class DebtGraph:
                         self.graph[creditor][debtor] += each_amount
                     else:
                         self.graph[creditor][debtor] = each_amount
-        elif type(debtors) is str or type(debtors) is unicode:
+        elif isinstance(debtors,(str,unicode)):
+            # check that the debtor exists
+            if debtors not in self.graph.keys():
+                raise KeyError("debtor not found.")
             if debtors in self.graph[creditor]:
                 self.graph[creditor][debtors] += float(amount)
             else:
