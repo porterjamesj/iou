@@ -13,7 +13,7 @@ class TestInit():
         dg = DebtGraph({"a":{"b":20},"b":{}})
         assert dg.graph == {"a":{"b":20},"b":{}}
 
-class TestRemove():
+class TestManipulation():
     """Graph manipulation methods should work properly."""
     @classmethod
     def setUp(self):
@@ -22,6 +22,8 @@ class TestRemove():
             {"alice": {"bob": 20, "charlie":5},
              "bob": {"alice":10},
              "charlie": {}})
+
+    #removal
 
     def test_remove_normal(self):
         """Should remove debt correctly."""
@@ -42,5 +44,17 @@ class TestRemove():
         """Should throw an error when trying to remove a nonexistant debt."""
         self.dg.remove("charlie","bob",4)
 
+    #forgiveness
 
-class TestForgive
+    def test_forgive_normal(self):
+        """Test that the forgive method works properly."""
+        self.dg.forgive("bob","alice")
+        assert self.dg.graph == {"alice": {"bob": 20, "charlie":5},
+                                 "bob": {},
+                                 "charlie": {}}
+
+    @raises(KeyError)
+    def test_forgive_error(self):
+        self.dg.forgive("bob","charlie")
+
+    # addition
