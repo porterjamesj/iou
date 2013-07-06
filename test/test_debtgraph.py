@@ -91,5 +91,9 @@ class TestManipulation():
     #cancellation
 
     def test_cancel(self):
-        """Canceling symetric debts should produce the correct graph."""
-        assert True
+        """Canceling useless debts should produce the correct graph."""
+        self.dg.cancel()
+        print self.dg.graph
+        assert self.dg.graph == {"alice": {"bob": 10, "charlie":5},
+                                 "bob": {},
+                                 "charlie": {}}
