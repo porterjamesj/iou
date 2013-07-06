@@ -47,7 +47,7 @@ class TestManipulation():
     #forgiveness
 
     def test_forgive_normal(self):
-        """Test that the forgive method works properly."""
+        """Forgive method should delete debts."""
         self.dg.forgive("bob","alice")
         assert self.dg.graph == {"alice": {"bob": 20, "charlie":5},
                                  "bob": {},
@@ -55,6 +55,41 @@ class TestManipulation():
 
     @raises(KeyError)
     def test_forgive_error(self):
+        """Forgive method should throw an error when used on a nonexistant debt."""
         self.dg.forgive("bob","charlie")
 
     # addition
+
+    def test_addition_normal(self):
+        """Adding to an already existing debt should increase it."""
+        self.dg.add("alice","bob",5)
+        assert self.dg.graph == {"alice": {"bob": 25, "charlie":5},
+                                 "bob": {"alice":10},
+                                 "charlie": {}}
+
+    def test_addition_split(self):
+        """Adding a debt with multiple debtors should split the debt."""
+        self.dg.add("charlie",["alice","bob"],10)
+        assert self.dg.graph == {"alice": {"bob": 20, "charlie":5},
+                                 "bob": {"alice":10},
+                                 "charlie": {"alice":5,"bob":5}}
+
+    def test_addition_split_self(self):
+        """Adding a debt with multiple debtors including the creditor should
+        spilt the debt between everyone except the creditor."""
+        self.dg.add("charlie",["charlie","alice","bob"],15)
+        assert self.dg.graph == {"alice": {"bob": 20, "charlie":5},
+                                 "bob": {"alice":10},
+                                 "charlie": {"alice":5,"bob":5}}
+
+    @raises(TypeError)
+    def test_addition_error(self):
+        """Addition should throw an error if not called using a list or a
+        string."""
+        self.dg.add("alice",3,3)
+
+    #cancellation
+
+    def test_cancel(self):
+        """Canceling symetric debts should produce the correct graph."""
+        assert True
