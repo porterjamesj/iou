@@ -68,12 +68,13 @@ class DebtGraph:
         Split an amount of debt to the specified creditor between all
         parties in the debtors list.
         """
-        each_amount = float(amount) / len(debtors)
         if isinstance(debtors,list):
             # check that all the debtors actually exist
             for debtor in debtors:
                 if debtor not in self.graph.keys():
                     raise KeyError("debtor not found.")
+            # go ahead and add split / add the debt
+            each_amount = float(amount) / len(debtors)
             for debtor in debtors:
                 if debtor != creditor:
                     """
@@ -86,7 +87,7 @@ class DebtGraph:
                         self.graph[creditor][debtor] += each_amount
                     else:
                         self.graph[creditor][debtor] = each_amount
-        elif isinstance(debtors,(str,unicode)):
+        elif isinstance(debtors,(str,unicode,int)):
             # check that the debtor exists
             if debtors not in self.graph.keys():
                 raise KeyError("debtor not found.")

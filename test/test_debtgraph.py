@@ -83,11 +83,22 @@ class TestManipulation():
                                  "bob": {"alice":10},
                                  "charlie": {"alice":5,"bob":5}}
 
+    def test_addition_with_ints(self):
+        """Addition should work when the keys are ints."""
+        self.dg = DebtGraph(
+            {1: {2: 20, 3: 5},
+             2: {1: 10},
+             3: {}})
+        self.dg.add(1,2,5)
+        assert self.dg.graph == {1: {2: 25, 3: 5},
+                                 2: {1: 10},
+                                 3: {}}
+
     @raises(TypeError)
     def test_addition_error1(self):
-        """Addition should throw an error if not called using a list or a
+        """Addition should throw an error if not called using a list, int, or
         string."""
-        self.dg.add("alice",3,3)
+        self.dg.add("alice",{},3)
 
     def test_addition_error2(self):
         """Addition should throw an error if any of the people
