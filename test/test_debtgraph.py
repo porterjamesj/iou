@@ -2,7 +2,8 @@ from debtgraph import DebtGraph
 from nose.tools import raises
 from nose.tools import assert_raises
 
-class TestInit():
+
+class TestInit(object):
     """Initialization should occur properly."""
     def test_string_init(self):
         """Should correctly initialize a graph from a list of names."""
@@ -14,7 +15,8 @@ class TestInit():
         dg = DebtGraph({"a":{"b":20},"b":{}})
         assert dg.graph == {"a":{"b":20},"b":{}}
 
-class TestManipulation():
+
+class TestManipulation(object):
     """Graph manipulation methods should work properly."""
     @classmethod
     def setUp(self):
@@ -118,7 +120,7 @@ class TestManipulation():
                                  "charlie": {}}
 
 
-class TestCollapse():
+class TestCollapse(object):
     """This has its own class becuase the setup is different."""
 
     @classmethod
@@ -134,7 +136,7 @@ class TestCollapse():
                                  'bob': {},
                                  'alice': {}}
 
-class TestEdit():
+class TestEdit(object):
     """Testing functions that manipulate the list of people in the graph."""
 
     @classmethod

@@ -1,4 +1,6 @@
+
 import json
+import itertools as it
 
 class DebtGraph:
     """
@@ -118,18 +120,53 @@ class DebtGraph:
                         self.graph[person2][person1] = -newdebt
                         del self.graph[person1][person2]
 
-    def collapse(self):
-        """
-        Collapses the debt graph to remove all useless
-        edges. See complete documentation for more details.
-        """
-        # First we compute the "flow" of money into or out of each node
+    def __get_nodes(self):
         nodeflows = {person : 0.0 for person in self.graph}
         for person1 in self.graph:
             for person2 in self.graph[person1]:
                 value = self.graph[person1][person2]
                 nodeflows[person1] += value
                 nodeflows[person2] -= value
+        return nodeflows
+
+    def __subgraphs(self,nodeset,n):
+        """ Recursive function that returns a list of subsets covering the
+        given nodeset. Guarantees that the number of subsets is maximized
+        (i.e. that all possible subgraphs are broken out). The public
+        find_subgraphs method is a wrapper around this."""
+        print nodeset,n
+
+        subsets = it.combinations(nodeset,n)
+        for subset in subsets:
+            if sum([node[1] for node in subset]) == 0.0:
+                # this is a zero-sum subset, recurse
+                print set(subset)
+                return [set(subset)].extend(
+                    self.__subgraphs(nodeset.difference(set(subset)), n))
+        # if we don't find any zero-sum subsets, first check if we are done
+        if n >= len(self.graph.keys())/2: # i don't like relying on this
+            print nodeset
+            return nodeset # we are done
+        else:
+            return self.__subgraphs(nodeset,n+1)
+
+    def find_subgraphs(self):
+        """Returns a list containing disconnected subgraphs of the overall
+        graph."""
+        nodeflows = self.__get_nodes() # dict of names => flows
+        # as a preprocessing step, filter everyone with no net flow.
+        nodeflows = [node for node in nodeflows if node[1] != 0.0]
+        nodeset = set(nodeflows.items()) # set of (name, flow) tuples
+        return self.__subgraphs(nodeset,2)
+
+    def collapse(self):
+        """
+        Simplifies a graph with n nodes into n-1 edges. This is the best
+        we can do for connected graphs, but will fail on graphs with
+        disconnected subgraphs.
+        """
+        # First we compute the "flow" of money into or out of each node
+        nodeflows = self.__get_nodes()
         # Now split into positive and negative and sort each
         pos_flows = [list(flow) for flow in nodeflows.items() if flow[1] > 0]
         neg_flows = [list(flow) for flow in nodeflows.items() if flow[1] < 0]
