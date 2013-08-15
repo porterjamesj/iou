@@ -14,7 +14,7 @@ def serializer(func):
 
 def get_names(arg_list, dg):
     """
-    Parses person specifications from the command line into lists of names  
+    Parses person specifications from the command line into lists of names
 
     This enables a couple nice syntaxes, one is
 
@@ -24,6 +24,9 @@ def get_names(arg_list, dg):
 
     all but james => everyone in the graph except james.
     """
+    if len(arg_list) == 0:
+        print "Not enough names specified, check your input!"
+        exit(1)
     if arg_list[0] == "all":
         if len(arg_list) > 1:
             return [person for person in dg.graph.keys() if person not in arg_list[2:]]
