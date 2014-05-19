@@ -76,7 +76,7 @@ def view(args):
             for i,debtor in enumerate(dg.graph[creditor]):
                 if i > 0:
                     s += " " * (len(creditor) + 3)
-                s += "+-- {0}: {1}\n".format(debtor,dg.graph[creditor][debtor])
+                s += "+-- {0}: {1:.2f}\n".format(debtor,dg.graph[creditor][debtor])
                 if i+1 < len(dg.graph[creditor]):
                     s += " " * (len(creditor)+3) + "|\n"
         print s
