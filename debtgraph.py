@@ -74,7 +74,7 @@ class DebtGraph:
             # check that all the debtors actually exist
             for debtor in debtors:
                 if debtor not in self.graph.keys():
-                    raise KeyError("debtor not found.")
+                    raise KeyError("debtor '{0}' not found.".format(debtor))
             # go ahead and add split / add the debt
             each_amount = float(amount) / len(debtors)
             for debtor in debtors:
@@ -92,7 +92,7 @@ class DebtGraph:
         elif isinstance(debtors,(str,unicode,int)):
             # check that the debtor exists
             if debtors not in self.graph.keys():
-                raise KeyError("debtor not found.")
+                raise KeyError("debtor(s) '{0}' not found.".format(debtors))
             if debtors in self.graph[creditor]:
                 self.graph[creditor][debtors] += float(amount)
             else:
